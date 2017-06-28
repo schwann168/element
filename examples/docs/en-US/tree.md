@@ -1,3 +1,25 @@
+<style>
+  .demo-tree {
+    .leaf {
+      width: 20px;
+      background: #ddd;
+    }
+
+    .folder {
+      width: 20px;
+      background: #888;
+    }
+
+    .buttons {
+      margin-top: 20px;
+    }
+
+    .filter-tree {
+      margin-top: 20px;
+    }
+  }
+</style>
+
 <script>
   const data = [{
     label: 'Level one 1',
@@ -114,7 +136,7 @@
         if (node.data.name === 'region1') {
           hasChild = true;
         } else if (node.data.name === 'region2') {
-          hasChild = false;          
+          hasChild = false;
         } else {
           hasChild = Math.random() > 0.5;
         }
@@ -168,7 +190,7 @@
 
       renderContent(h, { node, data, store }) {
         return (
-          <span>
+          <span style="white-space: normal">
             <span>
               <span>{node.label}</span>
             </span>
@@ -504,7 +526,7 @@ Tree nodes can be initially expanded or checked
 ### Custom node content
 The content of tree nodes can be customized, so you can add icons or buttons as you will
 
-::: demo Use `render-content` to assign a render function that returns the content of tree nodes. See Vue's documentation for a detailed introduction of render functions.
+::: demo Use `render-content` to assign a render function that returns the content of tree nodes. See Vue's documentation for a detailed introduction of render functions. Note that this demo can't run in jsfiddle because it doesn't support JSX syntax. In a real project, `render-content` will work if relevant dependencies are correctly configured.
 ```html
 <el-tree
   :data="data2"

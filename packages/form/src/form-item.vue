@@ -5,7 +5,7 @@
     'is-required': isRequired || required
   }">
     <label :for="prop" class="el-form-item__label" v-bind:style="labelStyle" v-if="label">
-      {{label + form.labelSuffix}}
+      <slot name="label">{{label + form.labelSuffix}}</slot>
     </label>
     <div class="el-form-item__content" v-bind:style="contentStyle">
       <slot></slot>
@@ -112,6 +112,21 @@
 
           return getPropByPath(model, path).v;
         }
+      },
+      isRequired() {
+        let rules = this.getRules();
+        let isRequired = false;
+
+        if (rules && rules.length) {
+          rules.every(rule => {
+            if (rule.required) {
+              isRequired = true;
+              return false;
+            }
+            return true;
+          });
+        }
+        return isRequired;
       }
     },
     data() {
@@ -119,8 +134,7 @@
         validateState: '',
         validateMessage: '',
         validateDisabled: false,
-        validator: {},
-        isRequired: false
+        validator: {}
       };
     },
     methods: {
@@ -161,10 +175,10 @@
 
         let prop = getPropByPath(model, path);
 
-        if (Array.isArray(value) && value.length > 0) {
+        if (Array.isArray(value)) {
           this.validateDisabled = true;
-          prop.o[prop.k] = [];
-        } else if (value !== '') {
+          prop.o[prop.k] = [].concat(this.initialValue);
+        } else {
           this.validateDisabled = true;
           prop.o[prop.k] = this.initialValue;
         }
@@ -200,19 +214,17 @@
       if (this.prop) {
         this.dispatch('ElForm', 'el.form.addField', [this]);
 
+        let initialValue = this.fieldValue;
+        if (Array.isArray(initialValue)) {
+          initialValue = [].concat(initialValue);
+        }
         Object.defineProperty(this, 'initialValue', {
-          value: this.fieldValue
+          value: initialValue
         });
 
         let rules = this.getRules();
 
         if (rules.length) {
-          rules.every(rule => {
-            if (rule.required) {
-              this.isRequired = true;
-              return false;
-            }
-          });
           this.$on('el.form.blur', this.onFieldBlur);
           this.$on('el.form.change', this.onFieldChange);
         }
