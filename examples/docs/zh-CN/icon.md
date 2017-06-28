@@ -85,7 +85,7 @@
 ### 图标集合
 
 <ul class="icon-list">
-  <li v-for="name in icons" :key="name">
+  <li v-for="name in icons">
     <span>
       <i :class="'el-icon-' + name"></i>
       {{'el-icon-' + name}}

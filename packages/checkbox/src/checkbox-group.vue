@@ -9,12 +9,7 @@
     mixins: [Emitter],
 
     props: {
-      value: {},
-      min: Number,
-      max: Number,
-      size: String,
-      fill: String,
-      textColor: String
+      value: {}
     },
 
     watch: {

@@ -59,9 +59,7 @@
 
     watch: {
       value(val) {
-        if (!val) {
-          this.showPanelColor = false;
-        } else if (val && val !== this.color.value) {
+        if (val && val !== this.color.value) {
           this.color.fromString(val);
         }
       },

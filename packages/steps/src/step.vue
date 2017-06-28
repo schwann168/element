@@ -52,7 +52,10 @@ export default {
     title: String,
     icon: String,
     description: String,
-    status: String
+    status: {
+      type: String,
+      default: 'wait'
+    }
   },
 
   data() {
@@ -62,7 +65,7 @@ export default {
       lineStyle: {},
       mainOffset: 0,
       isLast: false,
-      internalStatus: ''
+      currentStatus: this.status
     };
   },
 
@@ -70,25 +73,19 @@ export default {
     this.$parent.steps.push(this);
   },
 
-  computed: {
-    currentStatus() {
-      return this.status || this.internalStatus;
-    }
-  },
-
   methods: {
     updateStatus(val) {
       const prevChild = this.$parent.$children[this.index - 1];
 
       if (val > this.index) {
-        this.internalStatus = this.$parent.finishStatus;
+        this.currentStatus = this.$parent.finishStatus;
       } else if (val === this.index) {
-        this.internalStatus = this.$parent.processStatus;
+        this.currentStatus = this.$parent.processStatus;
       } else {
-        this.internalStatus = 'wait';
+        this.currentStatus = 'wait';
       }
 
-      if (prevChild) prevChild.calcProgress(this.internalStatus);
+      if (prevChild) prevChild.calcProgress(this.currentStatus);
     },
 
     calcProgress(status) {
@@ -103,7 +100,6 @@ export default {
         style.transitionDelay = (-150 * this.index) + 'ms';
       }
 
-      style.borderWidth = step ? '1px' : 0;
       this.$parent.direction === 'vertical'
         ? style.height = step + '%'
         : style.width = step + '%';

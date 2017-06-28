@@ -5,10 +5,10 @@
     @mouseleave="handleMouseLeave"
     @mousedown="onButtonDown"
     :class="{ 'hover': hovering, 'dragging': dragging }"
-    :style="wrapperStyle"
+    :style="{ left: currentPosition }"
     ref="button">
-    <el-tooltip placement="top" ref="tooltip" :disabled="!showTooltip">
-      <span slot="content">{{ formatValue }}</span>
+    <el-tooltip placement="top" ref="tooltip">
+      <span slot="content">{{ value }}</span>
       <div class="el-slider__button" :class="{ 'hover': hovering, 'dragging': dragging }"></div>
     </el-tooltip>
   </div>
@@ -28,10 +28,6 @@
       value: {
         type: Number,
         default: 0
-      },
-      vertical: {
-        type: Boolean,
-        default: false
       }
     },
 
@@ -41,8 +37,6 @@
         dragging: false,
         startX: 0,
         currentX: 0,
-        startY: 0,
-        currentY: 0,
         startPosition: 0,
         newPosition: null,
         oldValue: this.value
@@ -66,28 +60,12 @@
         return this.$parent.step;
       },
 
-      showTooltip() {
-        return this.$parent.showTooltip;
-      },
-
       precision() {
         return this.$parent.precision;
       },
 
       currentPosition() {
         return `${ (this.value - this.min) / (this.max - this.min) * 100 }%`;
-      },
-
-      enableFormat() {
-        return this.$parent.formatTooltip instanceof Function;
-      },
-
-      formatValue() {
-        return this.enableFormat && this.$parent.formatTooltip(this.value) || this.value;
-      },
-
-      wrapperStyle() {
-        return this.vertical ? { bottom: this.currentPosition } : { left: this.currentPosition };
       }
     },
 
@@ -98,7 +76,7 @@
     },
 
     methods: {
-      displayTooltip() {
+      showTooltip() {
         this.$refs.tooltip && (this.$refs.tooltip.showPopper = true);
       },
 
@@ -108,9 +86,9 @@
 
       handleMouseEnter() {
         this.hovering = true;
-        this.displayTooltip();
+        this.showTooltip();
       },
-
+  
       handleMouseLeave() {
         this.hovering = false;
         this.hideTooltip();
@@ -127,25 +105,15 @@
 
       onDragStart(event) {
         this.dragging = true;
-        if (this.vertical) {
-          this.startY = event.clientY;
-        } else {
-          this.startX = event.clientX;
-        }
-        this.startPosition = parseFloat(this.currentPosition);
+        this.startX = event.clientX;
+        this.startPosition = parseInt(this.currentPosition, 10);
       },
 
       onDragging(event) {
         if (this.dragging) {
-          this.displayTooltip();
-          let diff = 0;
-          if (this.vertical) {
-            this.currentY = event.clientY;
-            diff = (this.startY - this.currentY) / this.$parent.$sliderSize * 100;
-          } else {
-            this.currentX = event.clientX;
-            diff = (this.currentX - this.startX) / this.$parent.$sliderSize * 100;
-          }
+          this.showTooltip();
+          this.currentX = event.clientX;
+          const diff = (this.currentX - this.startX) / this.$parent.$sliderWidth * 100;
           this.newPosition = this.startPosition + diff;
           this.setPosition(this.newPosition);
         }

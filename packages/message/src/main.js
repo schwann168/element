@@ -1,6 +1,5 @@
 import Vue from 'vue';
 import { PopupManager } from 'element-ui/src/utils/popup';
-import { isVNode } from 'element-ui/src/utils/vdom';
 let MessageConstructor = Vue.extend(require('./main.vue'));
 
 let instance;
@@ -21,14 +20,11 @@ var Message = function(options) {
   options.onClose = function() {
     Message.close(id, userOnClose);
   };
+
   instance = new MessageConstructor({
     data: options
   });
   instance.id = id;
-  if (isVNode(instance.message)) {
-    instance.$slots.default = [instance.message];
-    instance.message = null;
-  }
   instance.vm = instance.$mount();
   document.body.appendChild(instance.vm.$el);
   instance.vm.visible = true;
@@ -59,12 +55,6 @@ Message.close = function(id, userOnClose) {
       instances.splice(i, 1);
       break;
     }
-  }
-};
-
-Message.closeAll = function() {
-  for (let i = instances.length - 1; i >= 0; i--) {
-    instances[i].close();
   }
 };
 

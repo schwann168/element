@@ -6,9 +6,10 @@
       'el-table--border': border,
       'el-table--fluid-height': maxHeight,
       'el-table--enable-row-hover': !store.states.isComplex,
-      'el-table--enable-row-transition': (store.states.data || []).length !== 0 && (store.states.data || []).length < 100
+      'el-table--enable-row-transition': true || (store.states.data || []).length !== 0 && (store.states.data || []).length < 100
     }"
-    @mouseleave="handleMouseLeave($event)">
+    @mouseleave="handleMouseLeave($event)"
+    :style="[tableHeight]">
     <div class="hidden-columns" ref="hiddenColumns"><slot></slot></div>
     <div class="el-table__header-wrapper" ref="headerWrapper" v-if="showHeader">
       <table-header
@@ -26,7 +27,6 @@
       <table-body
         :context="context"
         :store="store"
-        :stripe="stripe"
         :layout="layout"
         :row-class-name="rowClassName"
         :row-style="rowStyle"
@@ -36,17 +36,6 @@
       <div :style="{ width: bodyWidth }" class="el-table__empty-block" v-if="!data || data.length === 0">
         <span class="el-table__empty-text"><slot name="empty">{{ emptyText || t('el.table.emptyText') }}</slot></span>
       </div>
-    </div>
-    <div class="el-table__footer-wrapper" ref="footerWrapper" v-if="showSummary" v-show="data && data.length > 0">
-      <table-footer
-        :store="store"
-        :layout="layout"
-        :border="border"
-        :sum-text="sumText || t('el.table.sumText')"
-        :summary-method="summaryMethod"
-        :default-sort="defaultSort"
-        :style="{ width: layout.bodyWidth ? layout.bodyWidth + 'px' : '' }">
-      </table-footer>
     </div>
     <div class="el-table__fixed" ref="fixedWrapper"
       v-if="fixedColumns.length > 0"
@@ -70,23 +59,12 @@
         <table-body
           fixed="left"
           :store="store"
-          :stripe="stripe"
           :layout="layout"
           :highlight="highlightCurrentRow"
           :row-class-name="rowClassName"
           :row-style="rowStyle"
           :style="{ width: layout.fixedWidth ? layout.fixedWidth + 'px' : '' }">
         </table-body>
-      </div>
-      <div class="el-table__fixed-footer-wrapper" ref="fixedFooterWrapper" v-if="showSummary" v-show="data && data.length > 0">
-        <table-footer
-          fixed="left"
-          :border="border"
-          :sum-text="sumText || t('el.table.sumText')"
-          :summary-method="summaryMethod"
-          :store="store"
-          :layout="layout"
-          :style="{ width: layout.fixedWidth ? layout.fixedWidth + 'px' : '' }"></table-footer>
       </div>
     </div>
     <div class="el-table__fixed-right" ref="rightFixedWrapper"
@@ -112,23 +90,12 @@
         <table-body
           fixed="right"
           :store="store"
-          :stripe="stripe"
           :layout="layout"
           :row-class-name="rowClassName"
           :row-style="rowStyle"
           :highlight="highlightCurrentRow"
           :style="{ width: layout.rightFixedWidth ? layout.rightFixedWidth + 'px' : '' }">
         </table-body>
-      </div>
-      <div class="el-table__fixed-footer-wrapper" ref="rightFixedFooterWrapper" v-if="showSummary" v-show="data && data.length > 0">
-        <table-footer
-          fixed="right"
-          :border="border"
-          :sum-text="sumText || t('el.table.sumText')"
-          :summary-method="summaryMethod"
-          :store="store"
-          :layout="layout"
-          :style="{ width: layout.rightFixedWidth ? layout.rightFixedWidth + 'px' : '' }"></table-footer>
       </div>
     </div>
     <div class="el-table__fixed-right-patch"
@@ -148,7 +115,6 @@
   import TableLayout from './table-layout';
   import TableBody from './table-body';
   import TableHeader from './table-header';
-  import TableFooter from './table-footer';
   import { mousewheel } from './util';
 
   let tableIdSeed = 1;
@@ -190,12 +156,6 @@
         default: true
       },
 
-      showSummary: Boolean,
-
-      sumText: String,
-
-      summaryMethod: Function,
-
       rowClassName: [String, Function],
 
       rowStyle: [Object, Function],
@@ -210,23 +170,16 @@
 
       defaultExpandAll: Boolean,
 
-      defaultSort: Object,
-
-      tooltipEffect: String
+      defaultSort: Object
     },
 
     components: {
       TableHeader,
-      TableFooter,
       TableBody,
       ElCheckbox
     },
 
     methods: {
-      setCurrentRow(row) {
-        this.store.commit('setCurrentRow', row);
-      },
-
       toggleRowSelection(row, selected) {
         this.store.toggleRowSelection(row, selected);
         this.store.updateAllSelected();
@@ -246,29 +199,24 @@
       },
 
       bindEvents() {
-        const { headerWrapper, footerWrapper } = this.$refs;
+        const { headerWrapper } = this.$refs;
         const refs = this.$refs;
         this.bodyWrapper.addEventListener('scroll', function() {
           if (headerWrapper) headerWrapper.scrollLeft = this.scrollLeft;
-          if (footerWrapper) footerWrapper.scrollLeft = this.scrollLeft;
           if (refs.fixedBodyWrapper) refs.fixedBodyWrapper.scrollTop = this.scrollTop;
           if (refs.rightFixedBodyWrapper) refs.rightFixedBodyWrapper.scrollTop = this.scrollTop;
         });
 
-        const scrollBodyWrapper = event => {
-          const deltaX = event.deltaX;
-
-          if (deltaX > 0) {
-            this.bodyWrapper.scrollLeft += 10;
-          } else {
-            this.bodyWrapper.scrollLeft -= 10;
-          }
-        };
         if (headerWrapper) {
-          mousewheel(headerWrapper, throttle(16, scrollBodyWrapper));
-        }
-        if (footerWrapper) {
-          mousewheel(footerWrapper, throttle(16, scrollBodyWrapper));
+          mousewheel(headerWrapper, throttle(16, event => {
+            const deltaX = event.deltaX;
+
+            if (deltaX > 0) {
+              this.bodyWrapper.scrollLeft += 10;
+            } else {
+              this.bodyWrapper.scrollLeft -= 10;
+            }
+          }));
         }
 
         if (this.fit) {
@@ -340,9 +288,25 @@
           };
         } else if (this.maxHeight) {
           style = {
-            'max-height': (this.showHeader
-              ? this.maxHeight - this.layout.headerHeight - this.layout.footerHeight
-              : this.maxHeight - this.layout.footerHeight) + 'px'
+            'max-height': (this.showHeader ? this.maxHeight - this.layout.headerHeight : this.maxHeight) + 'px'
+          };
+        }
+
+        return style;
+      },
+
+      tableHeight() {
+        let style = {};
+
+        const height = this.layout.tableHeight ? this.layout.tableHeight + 'px' : '';
+
+        if (this.height) {
+          style = {
+            height
+          };
+        } else if (this.maxHeight) {
+          style = {
+            'max-height': height
           };
         }
 
@@ -406,7 +370,6 @@
         immediate: true,
         handler(val) {
           this.store.commit('setData', val);
-          if (this.$ready) this.doLayout();
         }
       },
 
@@ -422,17 +385,6 @@
     mounted() {
       this.bindEvents();
       this.doLayout();
-
-      // init filters
-      this.store.states.columns.forEach(column => {
-        if (column.filteredValue && column.filteredValue.length) {
-          this.store.commit('filterChange', {
-            column,
-            values: column.filteredValue,
-            silent: true
-          });
-        }
-      });
 
       this.$ready = true;
     },

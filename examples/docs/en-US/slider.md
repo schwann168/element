@@ -4,25 +4,17 @@
       return {
         value1: 0,
         value2: 50,
-        value3: 36,
-        value4: 48,
-        value5: 42,
+        value3: 42,
+        value4: 0,
+        value5: 0,
         value6: 0,
-        value7: 0,
-        value8: 0,
-        value9: [4, 8],
-        value10: 0
+        value7: [4, 8]
       };
-    },
-    methods: {
-      formatTooltip(val) {
-        return val / 100;
-      }
     }
   }
 </script>
 
-## Slider
+## Slider 
 
 Drag the slider within a fixed range.
 
@@ -36,23 +28,15 @@ The current value is displayed when the slider is being dragged.
 <template>
   <div class="block">
     <span class="demonstration">Default value</span>
-    <el-slider v-model="value1"></el-slider>
+    <el-slider v-model="value1"></el-slider>  
   </div>
   <div class="block">
     <span class="demonstration">Customized initial value</span>
     <el-slider v-model="value2"></el-slider>
   </div>
   <div class="block">
-    <span class="demonstration">Hide Tooltip</span>
-    <el-slider v-model="value3" :show-tooltip="false"></el-slider>
-  </div>
-  <div class="block">
-    <span class="demonstration">Format Tooltip</span>
-    <el-slider v-model="value4" :format-tooltip="formatTooltip"></el-slider>
-  </div>
-  <div class="block">
     <span class="demonstration">Disabled</span>
-    <el-slider v-model="value5" disabled></el-slider>
+    <el-slider v-model="value3" disabled></el-slider>
   </div>
 </template>
 
@@ -62,14 +46,7 @@ The current value is displayed when the slider is being dragged.
       return {
         value1: 0,
         value2: 50,
-        value3: 36,
-        value4: 48,
-        value5: 42
-      }
-    },
-    methods: {
-      formatTooltip(val) {
-        return val / 100;
+        value3: 42
       }
     }
   }
@@ -88,14 +65,14 @@ The options can be discrete.
   <div class="block">
     <span class="demonstration">Breakpoints not displayed</span>
     <el-slider
-      v-model="value6"
+      v-model="value4"
       :step="10">
-    </el-slider>
+    </el-slider>  
   </div>
   <div class="block">
     <span class="demonstration">Breakpoints displayed</span>
     <el-slider
-      v-model="value7"
+      v-model="value5"
       :step="10"
       show-stops>
     </el-slider>
@@ -106,8 +83,8 @@ The options can be discrete.
   export default {
     data() {
       return {
-        value6: 0,
-        value7: 0
+        value4: 0,
+        value5: 0
       }
     }
   }
@@ -125,9 +102,9 @@ Set value via a input box.
 <template>
   <div class="block">
     <el-slider
-      v-model="value8"
+      v-model="value6"
       show-input>
-    </el-slider>
+    </el-slider>  
   </div>
 </template>
 
@@ -135,7 +112,7 @@ Set value via a input box.
   export default {
     data() {
       return {
-        value8: 0
+        value6: 0
       }
     }
   }
@@ -152,7 +129,7 @@ Selecting a range of values is supported.
 <template>
   <div class="block">
     <el-slider
-      v-model="value9"
+      v-model="value7"
       range
       show-stops
       :max="10">
@@ -164,33 +141,7 @@ Selecting a range of values is supported.
   export default {
     data() {
       return {
-        value9: [4, 8]
-      }
-    }
-  }
-</script>
-```
-:::
-
-### Vertical mode
-
-:::demo Setting the `vertical` attribute to `true` enables vertical mode. In vertical mode, the `height` attribute is required.
-```html
-<template>
-  <div class="block">
-    <el-slider
-      v-model="value10"
-      vertical
-      height="200px">
-    </el-slider>
-  </div>
-</template>
-
-<script>
-  export default {
-    data() {
-      return {
-        value10: 0
+        value7: [4, 8]
       }
     }
   }
@@ -208,11 +159,7 @@ Selecting a range of values is supported.
 | show-input | whether to display an input box, works when `range` is false | boolean | — | false |
 | show-input-controls | whether to display control buttons when `show-input` is true | boolean | — | true |
 | show-stops | whether to display breakpoints | boolean | — | false |
-| show-tooltip | whether to display tooltip value | boolean | — | true |
-| format-tooltip | format to display tooltip value | Function(value) | — | — |
 | range | whether to select a range | boolean | — | false |
-| vertical | vertical mode | boolean | — | false |
-| height | Slider height, required in vertical mode | String | — | — |
 
 ## Events
 | Event Name | Description | Parameters |

@@ -28,9 +28,6 @@
     methods: {
       handleAfterLeave() {
         this.$emit('after-leave');
-      },
-      setText(text) {
-        this.text = text;
       }
     }
   };

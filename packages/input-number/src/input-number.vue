@@ -27,7 +27,7 @@
       @keydown.up.native.prevent="increase"
       @keydown.down.native.prevent="decrease"
       @blur="handleBlur"
-      @input="debounceHandleInput"
+      @input="handleInput"
       :disabled="disabled"
       :size="size"
       :max="max"
@@ -46,7 +46,6 @@
 <script>
   import ElInput from 'element-ui/packages/input';
   import { once, on } from 'element-ui/src/utils/dom';
-  import debounce from 'throttle-debounce/debounce';
 
   export default {
     name: 'ElInputNumber',
@@ -67,7 +66,6 @@
           on(el, 'mousedown', () => {
             startTime = new Date();
             once(document, 'mouseup', clear);
-            clearInterval(interval);
             interval = setInterval(handler, 100);
           });
         }
@@ -97,10 +95,6 @@
       controls: {
         type: Boolean,
         default: true
-      },
-      debounce: {
-        type: Number,
-        default: 300
       }
     },
     data() {
@@ -182,30 +176,17 @@
         const oldVal = this.currentValue;
         if (newVal >= this.max) newVal = this.max;
         if (newVal <= this.min) newVal = this.min;
-        if (oldVal === newVal) {
-          this.$refs.input.setCurrentValue(this.currentValue);
-          return;
-        }
+        if (oldVal === newVal) return;
         this.$emit('change', newVal, oldVal);
         this.$emit('input', newVal);
         this.currentValue = newVal;
       },
       handleInput(value) {
-        if (value === '') {
-          return;
-        }
         const newVal = Number(value);
         if (!isNaN(newVal)) {
           this.setCurrentValue(newVal);
-        } else {
-          this.$refs.input.setCurrentValue(this.currentValue);
         }
       }
-    },
-    created() {
-      this.debounceHandleInput = debounce(this.debounce, value => {
-        this.handleInput(value);
-      });
     }
   };
 </script>

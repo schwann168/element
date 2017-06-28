@@ -32,7 +32,7 @@
         @keydown.down.prevent="navigateOptions('next')"
         @keydown.up.prevent="navigateOptions('prev')"
         @keydown.enter.prevent="selectOption"
-        @keydown.esc.stop.prevent="visible = false"
+        @keydown.esc.prevent="visible = false"
         @keydown.delete="deletePrevTag"
         v-model="query"
         :debounce="remote ? 300 : 0"
@@ -57,7 +57,7 @@
       @keydown.native.down.prevent="navigateOptions('next')"
       @keydown.native.up.prevent="navigateOptions('prev')"
       @keydown.native.enter.prevent="selectOption"
-      @keydown.native.esc.stop.prevent="visible = false"
+      @keydown.native.esc.prevent="visible = false"
       @keydown.native.tab="visible = false"
       @paste.native="debouncedOnInputChange"
       @mouseenter.native="inputHovering = true"
@@ -84,7 +84,7 @@
           </el-option>
           <slot></slot>
         </el-scrollbar>
-        <p class="el-select-dropdown__empty" v-if="emptyText && (allowCreate && options.length === 0 || !allowCreate)">{{ emptyText }}</p>
+        <p class="el-select-dropdown__empty" v-if="emptyText && !allowCreate">{{ emptyText }}</p>
       </el-select-menu>
     </transition>
   </div>
@@ -103,6 +103,7 @@
   import { addClass, removeClass, hasClass } from 'element-ui/src/utils/dom';
   import { addResizeListener, removeResizeListener } from 'element-ui/src/utils/resize-event';
   import { t } from 'element-ui/src/locale';
+  import merge from 'element-ui/src/utils/merge';
   const sizeMap = {
     'large': 42,
     'small': 30,
@@ -165,9 +166,7 @@
 
     props: {
       name: String,
-      value: {
-        required: true
-      },
+      value: {},
       size: String,
       disabled: Boolean,
       clearable: Boolean,
@@ -191,15 +190,14 @@
         default() {
           return t('el.select.placeholder');
         }
-      },
-      defaultFirstOption: Boolean
+      }
     },
 
     data() {
       return {
         options: [],
         cachedOptions: [],
-        createdLabel: null,
+        createdOption: null,
         createdSelected: false,
         selected: this.multiple ? [] : {},
         isSelect: true,
@@ -265,9 +263,6 @@
           this.broadcast('ElOption', 'queryChange', val);
           this.broadcast('ElOptionGroup', 'queryChange');
         }
-        if (this.defaultFirstOption && (this.filterable || this.remote) && this.filteredOptionsCount) {
-          this.checkDefaultFirstOption();
-        }
       },
 
       visible(val) {
@@ -294,7 +289,7 @@
             if (this.selected) {
               if (this.filterable && this.allowCreate &&
                 this.createdSelected && this.createdOption) {
-                this.selectedLabel = this.createdLabel;
+                this.selectedLabel = this.createdOption.currentLabel;
               } else {
                 this.selectedLabel = this.selected.currentLabel;
               }
@@ -329,9 +324,6 @@
         let inputs = this.$el.querySelectorAll('input');
         if ([].indexOf.call(inputs, document.activeElement) === -1) {
           this.setSelected();
-        }
-        if (this.defaultFirstOption && (this.filterable || this.remote) && this.filteredOptionsCount) {
-          this.checkDefaultFirstOption();
         }
       }
     },
@@ -404,7 +396,7 @@
         if (!this.multiple) {
           let option = this.getOption(this.value);
           if (option.created) {
-            this.createdLabel = option.currentLabel;
+            this.createdOption = merge({}, option);
             this.createdSelected = true;
           } else {
             this.createdSelected = false;
@@ -470,9 +462,7 @@
 
       deletePrevTag(e) {
         if (e.target.value.length <= 0 && !this.toggleLastOptionHitState()) {
-          const value = this.value.slice();
-          value.pop();
-          this.$emit('input', value);
+          this.value.pop();
         }
       },
 
@@ -515,23 +505,26 @@
       },
 
       handleOptionSelect(option) {
-        if (this.multiple) {
-          const value = this.value.slice();
-          const optionIndex = value.indexOf(option.value);
+        if (!this.multiple) {
+          this.$emit('input', option.value);
+          this.visible = false;
+        } else {
+          let optionIndex = -1;
+          this.value.forEach((item, index) => {
+            if (item === option.value) {
+              optionIndex = index;
+            }
+          });
           if (optionIndex > -1) {
-            value.splice(optionIndex, 1);
-          } else if (this.multipleLimit <= 0 || value.length < this.multipleLimit) {
-            value.push(option.value);
+            this.value.splice(optionIndex, 1);
+          } else if (this.multipleLimit <= 0 || this.value.length < this.multipleLimit) {
+            this.value.push(option.value);
           }
-          this.$emit('input', value);
           if (option.created) {
             this.query = '';
             this.inputLength = 20;
           }
           if (this.filterable) this.$refs.input.focus();
-        } else {
-          this.$emit('input', option.value);
-          this.visible = false;
         }
       },
 
@@ -550,7 +543,6 @@
           return;
         }
         if (this.options.length === 0 || this.filteredOptionsCount === 0) return;
-        this.optionsAllDisabled = this.options.length === this.options.filter(item => item.disabled === true).length;
         if (!this.optionsAllDisabled) {
           if (direction === 'next') {
             this.hoverIndex++;
@@ -602,16 +594,12 @@
         event.stopPropagation();
         this.$emit('input', '');
         this.visible = false;
-        this.$emit('clear');
       },
 
       deleteTag(event, tag) {
         let index = this.selected.indexOf(tag);
         if (index > -1 && !this.disabled) {
-          const value = this.value.slice();
-          value.splice(index, 1);
-          this.$emit('input', value);
-          this.$emit('remove-tag', tag);
+          this.value.splice(index, 1);
         }
         event.stopPropagation();
       },
@@ -639,26 +627,6 @@
       handleResize() {
         this.resetInputWidth();
         if (this.multiple) this.resetInputHeight();
-      },
-
-      checkDefaultFirstOption() {
-        this.hoverIndex = -1;
-        for (let i = 0; i !== this.options.length; ++i) {
-          const option = this.options[i];
-          if (this.query) {
-            // pick first options that passes the filter
-            if (!option.disabled && !option.groupDisabled && option.visible) {
-              this.hoverIndex = i;
-              break;
-            }
-          } else {
-            // pick currently selected option
-            if (option.itemSelected) {
-              this.hoverIndex = i;
-              break;
-            }
-          }
-        }
       }
     },
 
@@ -696,8 +664,8 @@
       });
     },
 
-    beforeDestroy() {
-      if (this.$el && this.handleResize) removeResizeListener(this.$el, this.handleResize);
+    destroyed() {
+      if (this.handleResize) removeResizeListener(this.$el, this.handleResize);
     }
   };
 </script>

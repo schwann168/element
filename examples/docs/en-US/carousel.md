@@ -10,55 +10,6 @@
     }
   }
 </script>
-<style>
-  .demo-carousel .block {
-    padding: 30px;
-    text-align: center;
-    border-right: solid 1px #EFF2F6;
-    float: left;
-    width: 50%;
-    box-sizing: border-box;
-    &:last-child {
-      border-right: none;
-    }
-  }
-
-  .demo-carousel .demonstration {
-    display: block;
-    color: #8492a6;
-    font-size: 14px;
-    margin-bottom: 20px;
-  }
-
-  .demo-carousel .el-carousel__container {
-    text-align: center;
-  }
-
-  .demo-carousel .el-carousel__item {
-    h3 {
-      color: #fff;
-      font-size: 18px;
-      line-height: 300px;
-      margin: 0;
-    }
-    &:nth-child(2n) {
-      background-color: #99a9bf;
-    }
-    &:nth-child(2n+1) {
-      background-color: #d3dce6;
-    }
-  }
-
-  .demo-carousel .small h3 {
-    font-size: 14px;
-    line-height: 150px;
-  }
-
-  .demo-carousel .medium h3 {
-    font-size: 14px;
-    line-height: 200px;
-  }
-</style>
 ## Carousel
 
 Loop a series of images or texts in a limited space
@@ -71,7 +22,7 @@ Loop a series of images or texts in a limited space
   <div class="block">
     <span class="demonstration">Switch when indicator is hovered (default)</span>
     <el-carousel height="150px">
-      <el-carousel-item v-for="item in 4" :key="item">
+      <el-carousel-item v-for="item in 4">
         <h3>{{ item }}</h3>
       </el-carousel-item>
     </el-carousel>
@@ -79,7 +30,7 @@ Loop a series of images or texts in a limited space
   <div class="block">
     <span class="demonstration">Switch when indicator is clicked</span>
     <el-carousel trigger="click" height="150px">
-      <el-carousel-item v-for="item in 4" :key="item">
+      <el-carousel-item v-for="item in 4">
         <h3>{{ item }}</h3>
       </el-carousel-item>
     </el-carousel>
@@ -94,11 +45,11 @@ Loop a series of images or texts in a limited space
     line-height: 150px;
     margin: 0;
   }
-
+  
   .el-carousel__item:nth-child(2n) {
     background-color: #99a9bf;
   }
-
+  
   .el-carousel__item:nth-child(2n+1) {
     background-color: #d3dce6;
   }
@@ -114,7 +65,7 @@ Indicators can be displayed outside the carousel
 ```html
 <template>
   <el-carousel indicator-position="outside">
-    <el-carousel-item v-for="item in 4" :key="item">
+    <el-carousel-item v-for="item in 4">
       <h3>{{ item }}</h3>
     </el-carousel-item>
   </el-carousel>
@@ -128,11 +79,11 @@ Indicators can be displayed outside the carousel
     line-height: 300px;
     margin: 0;
   }
-
+  
   .el-carousel__item:nth-child(2n) {
     background-color: #99a9bf;
   }
-
+  
   .el-carousel__item:nth-child(2n+1) {
     background-color: #d3dce6;
   }
@@ -148,7 +99,7 @@ You can define when arrows are displayed
 ```html
 <template>
   <el-carousel :interval="5000" arrow="always">
-    <el-carousel-item v-for="item in 4" :key="item">
+    <el-carousel-item v-for="item in 4">
       <h3>{{ item }}</h3>
     </el-carousel-item>
   </el-carousel>
@@ -162,11 +113,11 @@ You can define when arrows are displayed
     line-height: 300px;
     margin: 0;
   }
-
+  
   .el-carousel__item:nth-child(2n) {
     background-color: #99a9bf;
   }
-
+  
   .el-carousel__item:nth-child(2n+1) {
     background-color: #d3dce6;
   }
@@ -182,7 +133,7 @@ When a page is wide enough but has limited height, you can activate card mode fo
 ```html
 <template>
   <el-carousel :interval="4000" type="card" height="200px">
-    <el-carousel-item v-for="item in 6" :key="item">
+    <el-carousel-item v-for="item in 6">
       <h3>{{ item }}</h3>
     </el-carousel-item>
   </el-carousel>
@@ -196,11 +147,11 @@ When a page is wide enough but has limited height, you can activate card mode fo
     line-height: 200px;
     margin: 0;
   }
-
+  
   .el-carousel__item:nth-child(2n) {
     background-color: #99a9bf;
   }
-
+  
   .el-carousel__item:nth-child(2n+1) {
     background-color: #d3dce6;
   }
@@ -211,7 +162,7 @@ When a page is wide enough but has limited height, you can activate card mode fo
 ### Carousel Attributes
 | Attribute      | Description          | Type      | Accepted Values       | Default  |
 |---------- |-------------- |---------- |--------------------------------  |-------- |
-| height | height of the carousel | string | — | — |
+| height | height of the carousel | number | — | 300 |
 | initial-index | index of the initially active slide (starting from 0) | number | — | 0 |
 | trigger | how indicators are triggered | string | hover/click | hover |
 | autoplay | whether automatically loop the slides | boolean | — | true |
@@ -236,4 +187,3 @@ When a page is wide enough but has limited height, you can activate card mode fo
 | Attribute      | Description          | Type      | Accepted Values       | Default  |
 |---------- |-------------- |---------- |--------------------------------  |-------- |
 | name | name of the item, can be used in `setActiveItem` | string | — | — |
-| label | text content for the corresponding indicator | string | — | — |

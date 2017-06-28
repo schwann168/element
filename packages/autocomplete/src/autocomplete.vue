@@ -1,5 +1,5 @@
 <template>
-  <div class="el-autocomplete">
+  <div class="el-autocomplete" v-clickoutside="handleClickoutside">
     <el-input
       ref="input"
       :value="value"
@@ -9,15 +9,12 @@
       :size="size"
       :icon="icon"
       :on-icon-click="onIconClick"
-      @compositionstart.native="handleComposition"
-      @compositionupdate.native="handleComposition"
-      @compositionend.native="handleComposition"
       @change="handleChange"
       @focus="handleFocus"
       @blur="handleBlur"
       @keydown.up.native.prevent="highlight(highlightedIndex - 1)"
       @keydown.down.native.prevent="highlight(highlightedIndex + 1)"
-      @keydown.enter.native.prevent="handleKeyEnter"
+      @keydown.enter.stop.native="handleKeyEnter"
     >
       <template slot="prepend" v-if="$slots.prepend">
         <slot name="prepend"></slot>
@@ -27,7 +24,6 @@
       </template>
     </el-input>
     <el-autocomplete-suggestions
-      :props="props"
       :class="[popperClass ? popperClass : '']"
       ref="suggestions"
       :suggestions="suggestions"
@@ -37,6 +33,7 @@
 </template>
 <script>
   import ElInput from 'element-ui/packages/input';
+  import Clickoutside from 'element-ui/src/utils/clickoutside';
   import ElAutocompleteSuggestions from './autocomplete-suggestions.vue';
   import Emitter from 'element-ui/src/mixins/emitter';
 
@@ -52,16 +49,9 @@
       ElAutocompleteSuggestions
     },
 
+    directives: { Clickoutside },
+
     props: {
-      props: {
-        type: Object,
-        default() {
-          return {
-            label: 'value',
-            value: 'value'
-          };
-        }
-      },
       popperClass: String,
       placeholder: String,
       disabled: Boolean,
@@ -81,7 +71,6 @@
     data() {
       return {
         isFocus: false,
-        isOnComposition: false,
         suggestions: [],
         loading: false,
         highlightedIndex: -1
@@ -111,17 +100,9 @@
           }
         });
       },
-      handleComposition(event) {
-        if (event.type === 'compositionend') {
-          this.isOnComposition = false;
-          this.handleChange(this.value);
-        } else {
-          this.isOnComposition = true;
-        }
-      },
       handleChange(value) {
         this.$emit('input', value);
-        if (this.isOnComposition || (!this.triggerOnFocus && !value)) {
+        if (!this.triggerOnFocus && !value) {
           this.suggestions = [];
           return;
         }
@@ -144,8 +125,11 @@
           this.select(this.suggestions[this.highlightedIndex]);
         }
       },
+      handleClickoutside() {
+        this.isFocus = false;
+      },
       select(item) {
-        this.$emit('input', item[this.props.value]);
+        this.$emit('input', item.value);
         this.$emit('select', item);
         this.$nextTick(_ => {
           this.suggestions = [];

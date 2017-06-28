@@ -4,12 +4,8 @@ import { on } from 'element-ui/src/utils/dom';
 const nodeList = [];
 const ctx = '@@clickoutsideContext';
 
-let startClick;
-
-!Vue.prototype.$isServer && on(document, 'mousedown', e => (startClick = e));
-
-!Vue.prototype.$isServer && on(document, 'mouseup', e => {
-  nodeList.forEach(node => node[ctx].documentHandler(e, startClick));
+!Vue.prototype.$isServer && on(document, 'click', e => {
+  nodeList.forEach(node => node[ctx].documentHandler(e));
 });
 /**
  * v-clickoutside
@@ -22,14 +18,11 @@ let startClick;
 export default {
   bind(el, binding, vnode) {
     const id = nodeList.push(el) - 1;
-    const documentHandler = function(mouseup = {}, mousedown = {}) {
+    const documentHandler = function(e) {
       if (!vnode.context ||
-        !mouseup.target ||
-        !mousedown.target ||
-        el.contains(mouseup.target) ||
+        el.contains(e.target) ||
         (vnode.context.popperElm &&
-        (vnode.context.popperElm.contains(mouseup.target) ||
-        vnode.context.popperElm.contains(mousedown.target)))) return;
+        vnode.context.popperElm.contains(e.target))) return;
 
       if (binding.expression &&
         el[ctx].methodName &&

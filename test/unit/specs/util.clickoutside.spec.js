@@ -1,8 +1,6 @@
 import Clickoutside from 'element-ui/src/utils/clickoutside';
 const ctx = '@@clickoutsideContext';
 
-import { triggerEvent, triggerClick } from '../util';
-
 describe('Utils:Clickoutside', () => {
   it('create', () => {
     let count = 0;
@@ -44,7 +42,7 @@ describe('Utils:Clickoutside', () => {
     };
 
     Clickoutside.bind(el, binding, vnode);
-    triggerClick(document);
+    document.body.click();
     expect(count).to.equal(1);
   });
 
@@ -63,9 +61,9 @@ describe('Utils:Clickoutside', () => {
 
     el.appendChild(insideElm);
     Clickoutside.bind(el, binding, vnode);
-    triggerClick(insideElm);
+    insideElm.click();
     expect(count).to.equal(0);
-    triggerClick(document);
+    document.body.click();
     expect(count).to.equal(1);
   });
 
@@ -85,9 +83,9 @@ describe('Utils:Clickoutside', () => {
 
     vnode.context.popperElm.appendChild(insideElm);
     Clickoutside.bind(el, binding, vnode);
-    triggerClick(insideElm);
+    insideElm.click();
     expect(count).to.equal(0);
-    triggerClick(document);
+    document.body.click();
     expect(count).to.equal(1);
   });
 
@@ -103,7 +101,7 @@ describe('Utils:Clickoutside', () => {
 
     Clickoutside.bind(el, binding, vnode);
     expect(count).to.equal(0);
-    triggerClick(document);
+    document.body.click();
     expect(count).to.equal(1);
   });
 
@@ -141,30 +139,9 @@ describe('Utils:Clickoutside', () => {
     };
 
     Clickoutside.bind(el, binding, vnode);
-    triggerClick(document);
+    document.body.click();
     Clickoutside.unbind(el);
-    triggerClick(document);
-    expect(count).to.equal(1);
-  });
-
-  it('stays open on drag click', () => {
-    const el = document.createElement('div');
-    const insideElm = document.createElement('div');
-    let count = 0;
-    const vnode = {
-      context: {
-        handleClick: () => ++count
-      }
-    };
-    const binding = {
-      expression: 'handleClick'
-    };
-
-    el.appendChild(insideElm);
-    Clickoutside.bind(el, binding, vnode);
-    triggerEvent(insideElm, 'mousedown');
-    triggerEvent(document, 'mouseup');
+    document.body.click();
     expect(count).to.equal(1);
   });
 });
-

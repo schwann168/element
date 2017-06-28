@@ -1,40 +1,6 @@
 import navConfig from './nav.config.json';
 import langs from './i18n/route.json';
 
-const LOAD_MAP = {
-  'zh-CN': name => {
-    return r => require.ensure([], () =>
-      r(require(`./pages/zh-CN/${name}.vue`)),
-    'zh-CN');
-  },
-  'en-US': name => {
-    return r => require.ensure([], () =>
-      r(require(`./pages/en-US/${name}.vue`)),
-    'en-US');
-  }
-};
-
-const load = function(lang, path) {
-  return LOAD_MAP[lang](path);
-};
-
-const LOAD_DOCS_MAP = {
-  'zh-CN': path => {
-    return r => require.ensure([], () =>
-      r(require(`./docs/zh-CN${path}.md`)),
-    'zh-CN');
-  },
-  'en-US': path => {
-    return r => require.ensure([], () =>
-      r(require(`./docs/en-US${path}.md`)),
-    'en-US');
-  }
-};
-
-const loadDocs = function(lang, path) {
-  return LOAD_DOCS_MAP[lang](path);
-};
-
 const registerRoute = (navConfig) => {
   let route = [];
   Object.keys(navConfig).forEach((lang, index) => {
@@ -42,11 +8,10 @@ const registerRoute = (navConfig) => {
     route.push({
       path: `/${ lang }/component`,
       redirect: `/${ lang }/component/installation`,
-      component: load(lang, 'component'),
+      component: require(`./pages/${ lang }/component.vue`),
       children: []
     });
     navs.forEach(nav => {
-      if (nav.href) return;
       if (nav.groups) {
         nav.groups.forEach(group => {
           group.list.forEach(nav => {
@@ -64,8 +29,8 @@ const registerRoute = (navConfig) => {
   });
   function addRoute(page, lang, index) {
     const component = page.path === '/changelog'
-      ? load(lang, 'changelog')
-      : loadDocs(lang, page.path);
+      ? require(`./pages/${ lang }/changelog.vue`)
+      : require(`./docs/${ lang }${page.path}.md`);
     let child = {
       path: page.path.slice(1),
       meta: {
@@ -89,17 +54,17 @@ const generateMiscRoutes = function(lang) {
   let guideRoute = {
     path: `/${ lang }/guide`, // 指南
     redirect: `/${ lang }/guide/design`,
-    component: load(lang, 'guide'),
+    component: require(`./pages/${ lang }/guide.vue`),
     children: [{
       path: 'design', // 设计原则
       name: 'guide-design' + lang,
       meta: { lang },
-      component: load(lang, 'design')
+      component: require(`./pages/${ lang }/design.vue`)
     }, {
       path: 'nav', // 导航
       name: 'guide-nav' + lang,
       meta: { lang },
-      component: load(lang, 'nav')
+      component: require(`./pages/${ lang }/nav.vue`)
     }]
   };
 
@@ -107,14 +72,14 @@ const generateMiscRoutes = function(lang) {
     path: `/${ lang }/resource`, // 资源
     meta: { lang },
     name: 'resource' + lang,
-    component: load(lang, 'resource')
+    component: require(`./pages/${ lang }/resource.vue`)
   };
 
   let indexRoute = {
     path: `/${ lang }`, // 首页
     meta: { lang },
     name: 'home' + lang,
-    component: load(lang, 'index')
+    component: require(`./pages/${ lang }/index.vue`)
   };
 
   return [guideRoute, resourceRoute, indexRoute];

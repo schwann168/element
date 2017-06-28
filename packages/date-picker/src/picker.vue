@@ -44,12 +44,12 @@ const NewPopper = {
   beforeDestroy: Popper.beforeDestroy
 };
 
+let RANGE_SEPARATOR = ' - ';
 const DEFAULT_FORMATS = {
   date: 'yyyy-MM-dd',
   month: 'yyyy-MM',
   datetime: 'yyyy-MM-dd HH:mm:ss',
   time: 'HH:mm:ss',
-  week: 'yyyywWW',
   timerange: 'HH:mm:ss',
   daterange: 'yyyy-MM-dd',
   datetimerange: 'yyyy-MM-dd HH:mm:ss',
@@ -73,19 +73,19 @@ const DATE_FORMATTER = function(value, format) {
 const DATE_PARSER = function(text, format) {
   return parseDate(text, format);
 };
-const RANGE_FORMATTER = function(value, format, separator) {
+const RANGE_FORMATTER = function(value, format) {
   if (Array.isArray(value) && value.length === 2) {
     const start = value[0];
     const end = value[1];
 
     if (start && end) {
-      return formatDate(start, format) + separator + formatDate(end, format);
+      return formatDate(start, format) + RANGE_SEPARATOR + formatDate(end, format);
     }
   }
   return '';
 };
-const RANGE_PARSER = function(text, format, separator) {
-  const array = text.split(separator);
+const RANGE_PARSER = function(text, format) {
+  const array = text.split(RANGE_SEPARATOR);
   if (array.length === 2) {
     const range1 = array[0];
     const range2 = array[1];
@@ -106,14 +106,12 @@ const TYPE_VALUE_RESOLVER_MAP = {
     }
   },
   week: {
-    formatter(value, format) {
-      let date = formatDate(value, format);
-      const week = getWeekNumber(value);
-
-      date = /WW/.test(date)
-            ? date.replace(/WW/, week < 10 ? '0' + week : week)
-            : date.replace(/W/, week);
-      return date;
+    formatter(value) {
+      if (value instanceof Date) {
+        const weekNumber = getWeekNumber(value);
+        return value.getFullYear() + 'w' + (weekNumber > 9 ? weekNumber : '0' + weekNumber);
+      }
+      return value;
     },
     parser(text) {
       const array = (text || '').split('w');
@@ -182,20 +180,6 @@ const PLACEMENT_MAP = {
   right: 'bottom-end'
 };
 
-// only considers date-picker's value: Date or [Date, Date]
-const valueEquals = function(a, b) {
-  const aIsArray = a instanceof Array;
-  const bIsArray = b instanceof Array;
-  if (aIsArray && bIsArray) {
-    return new Date(a[0]).getTime() === new Date(b[0]).getTime() &&
-           new Date(a[1]).getTime() === new Date(b[1]).getTime();
-  }
-  if (!aIsArray && !bIsArray) {
-    return new Date(a).getTime() === new Date(b).getTime();
-  }
-  return false;
-};
-
 export default {
   mixins: [Emitter, NewPopper],
 
@@ -219,7 +203,6 @@ export default {
       default: 'left'
     },
     value: {},
-    defaultValue: {},
     rangeSeparator: {
       default: ' - '
     },
@@ -234,8 +217,7 @@ export default {
     return {
       pickerVisible: false,
       showClose: false,
-      currentValue: '',
-      unwatchPickerOptions: null
+      currentValue: ''
     };
   },
 
@@ -324,7 +306,7 @@ export default {
         ).formatter;
         const format = DEFAULT_FORMATS[this.type];
 
-        return formatter(value, this.format || format, this.rangeSeparator);
+        return formatter(value, this.format || format);
       },
 
       set(value) {
@@ -334,13 +316,12 @@ export default {
             TYPE_VALUE_RESOLVER_MAP[type] ||
             TYPE_VALUE_RESOLVER_MAP['default']
           ).parser;
-          const parsedValue = parser(value, this.format || DEFAULT_FORMATS[type], this.rangeSeparator);
+          const parsedValue = parser(value, this.format || DEFAULT_FORMATS[type]);
 
           if (parsedValue && this.picker) {
             this.picker.value = parsedValue;
           }
         } else {
-          this.$emit('input', value);
           this.picker.value = value;
         }
         this.$forceUpdate();
@@ -349,6 +330,7 @@ export default {
   },
 
   created() {
+    RANGE_SEPARATOR = this.rangeSeparator;
     // vue-popper
     this.popperOptions = {
       boundariesPadding: 0,
@@ -368,7 +350,7 @@ export default {
     handleClickIcon() {
       if (this.readonly || this.disabled) return;
       if (this.showClose) {
-        this.currentValue = this.$options.defaultValue || '';
+        this.currentValue = '';
         this.showClose = false;
       } else {
         this.pickerVisible = !this.pickerVisible;
@@ -409,10 +391,9 @@ export default {
     handleKeydown(event) {
       const keyCode = event.keyCode;
 
-      // TAB or ESC
-      if (keyCode === 9 || keyCode === 27) {
+      // tab
+      if (keyCode === 9) {
         this.pickerVisible = false;
-        event.stopPropagation();
       }
     },
 
@@ -427,9 +408,58 @@ export default {
     showPicker() {
       if (this.$isServer) return;
       if (!this.picker) {
-        this.mountPicker();
+        this.panel.defaultValue = this.currentValue;
+        this.picker = new Vue(this.panel).$mount(document.createElement('div'));
+        this.picker.popperClass = this.popperClass;
+        this.popperElm = this.picker.$el;
+        this.picker.width = this.reference.getBoundingClientRect().width;
+        this.picker.showTime = this.type === 'datetime' || this.type === 'datetimerange';
+        this.picker.selectionMode = this.selectionMode;
+        if (this.format) {
+          this.picker.format = this.format;
+        }
+
+        const updateOptions = () => {
+          const options = this.pickerOptions;
+
+          if (options && options.selectableRange) {
+            let ranges = options.selectableRange;
+            const parser = TYPE_VALUE_RESOLVER_MAP.datetimerange.parser;
+            const format = DEFAULT_FORMATS.timerange;
+
+            ranges = Array.isArray(ranges) ? ranges : [ranges];
+            this.picker.selectableRange = ranges.map(range => parser(range, format));
+          }
+
+          for (const option in options) {
+            if (options.hasOwnProperty(option) &&
+                // 忽略 time-picker 的该配置项
+                option !== 'selectableRange') {
+              this.picker[option] = options[option];
+            }
+          }
+        };
+        updateOptions();
+        this.$watch('pickerOptions', () => updateOptions(), { deep: true });
+
+        this.$el.appendChild(this.picker.$el);
+        this.pickerVisible = this.picker.visible = true;
+        this.picker.resetView && this.picker.resetView();
+
+        this.picker.$on('dodestroy', this.doDestroy);
+        this.picker.$on('pick', (date, visible = false) => {
+          this.$emit('input', date);
+          this.pickerVisible = this.picker.visible = visible;
+          this.picker.resetView && this.picker.resetView();
+        });
+
+        this.picker.$on('select-range', (start, end) => {
+          this.refInput.setSelectionRange(start, end);
+          this.refInput.focus();
+        });
+      } else {
+        this.pickerVisible = this.picker.visible = true;
       }
-      this.pickerVisible = this.picker.visible = true;
 
       this.updatePopper();
 
@@ -443,71 +473,6 @@ export default {
       this.$nextTick(() => {
         this.picker.ajustScrollTop && this.picker.ajustScrollTop();
       });
-    },
-
-    mountPicker() {
-      this.panel.defaultValue = this.defaultValue || this.currentValue;
-      this.picker = new Vue(this.panel).$mount();
-      this.picker.popperClass = this.popperClass;
-      this.popperElm = this.picker.$el;
-      this.picker.width = this.reference.getBoundingClientRect().width;
-      this.picker.showTime = this.type === 'datetime' || this.type === 'datetimerange';
-      this.picker.selectionMode = this.selectionMode;
-      if (this.format) {
-        this.picker.format = this.format;
-      }
-
-      const updateOptions = () => {
-        const options = this.pickerOptions;
-
-        if (options && options.selectableRange) {
-          let ranges = options.selectableRange;
-          const parser = TYPE_VALUE_RESOLVER_MAP.datetimerange.parser;
-          const format = DEFAULT_FORMATS.timerange;
-
-          ranges = Array.isArray(ranges) ? ranges : [ranges];
-          this.picker.selectableRange = ranges.map(range => parser(range, format, this.rangeSeparator));
-        }
-
-        for (const option in options) {
-          if (options.hasOwnProperty(option) &&
-              // 忽略 time-picker 的该配置项
-              option !== 'selectableRange') {
-            this.picker[option] = options[option];
-          }
-        }
-      };
-      updateOptions();
-      this.unwatchPickerOptions = this.$watch('pickerOptions', () => updateOptions(), { deep: true });
-
-      this.$el.appendChild(this.picker.$el);
-      this.picker.resetView && this.picker.resetView();
-
-      this.picker.$on('dodestroy', this.doDestroy);
-      this.picker.$on('pick', (date = '', visible = false) => {
-        // do not emit if values are same
-        if (!valueEquals(this.value, date)) {
-          this.$emit('input', date);
-        }
-        this.pickerVisible = this.picker.visible = visible;
-        this.picker.resetView && this.picker.resetView();
-      });
-
-      this.picker.$on('select-range', (start, end) => {
-        this.refInput.setSelectionRange(start, end);
-        this.refInput.focus();
-      });
-    },
-
-    unmountPicker() {
-      if (this.picker) {
-        this.picker.$destroy();
-        this.picker.$off();
-        if (typeof this.unwatchPickerOptions === 'function') {
-          this.unwatchPickerOptions();
-        }
-        this.picker.$el.parentNode.removeChild(this.picker.$el);
-      }
     }
   }
 };

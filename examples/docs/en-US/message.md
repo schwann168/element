@@ -2,17 +2,7 @@
   module.exports = {
     methods: {
       open() {
-        this.$message('This is a message.');
-      },
-
-      openVn() {
-        const h = this.$createElement;
-        this.$message({
-          message: h('p', null, [
-            h('span', null, 'Message can be '),
-            h('i', { style: 'color: teal' }, 'VNode')
-          ])
-        });
+        this.$message('This is a message');
       },
 
       open2() {
@@ -36,7 +26,7 @@
       open5() {
         this.$message({
           showClose: true,
-          message: 'This is a message.'
+          message: 'This is a message'
         });
       },
 
@@ -75,12 +65,11 @@ Used to show feedback after an activity. The difference with Notification is tha
 
 Displays at the top, and disappears after 3 seconds.
 
-:::demo The setup of Message is very similar to notification, so parts of the options won't be explained in detail here. You can check the options table below combined with notification doc to understand it. Element has registered a `$message` method for invoking. Message can take a string or VNode as parameter, and it will be shown as the main body.
+:::demo The setup of Message is very similar to notification, so parts of the options won't be explained in detail here. You can check the options table below combined with notification doc to understand it. Element has registered a `$message` method for invoking. Message can take a string as parameter, and it will be shown as the main body.
 
 ```html
 <template>
   <el-button :plain="true" @click="open">Show message</el-button>
-  <el-button :plain="true" @click="openVn">VNode</el-button>
 </template>
 
 <script>
@@ -88,16 +77,6 @@ Displays at the top, and disappears after 3 seconds.
     methods: {
       open() {
         this.$message('This is a message.');
-      },
-      
-      openVn() {
-        const h = this.$createElement;
-        this.$message({
-          message: h('p', null, [
-            h('span', null, 'Message can be '),
-            h('i', { style: 'color: teal' }, 'VNode')
-          ])
-        });
       }
     }
   }
@@ -122,7 +101,7 @@ Used to show the feedback of Success, Warning, Message and Error activities.
   export default {
     methods: {
       open() {
-        this.$message('This is a message.');
+        this.$message('This is a message');
       },
       open2() {
         this.$message({
@@ -166,23 +145,23 @@ A close button can be added.
       open5() {
         this.$message({
           showClose: true,
-          message: 'This is a message.'
+          message: 'Congrats, this is a success message.'
         });
       },
 
       open6() {
         this.$message({
           showClose: true,
-          message: 'Congrats, this is a success message.',
-          type: 'success'
+          message: 'Warning, this is a warning message.',
+          type: 'warning'
         });
       },
 
       open7() {
         this.$message({
           showClose: true,
-          message: 'Warning, this is a warning message.',
-          type: 'warning'
+          message: 'Oops, this is a error message.',
+          type: 'error'
         });
       },
 
@@ -212,12 +191,11 @@ import { Message } from 'element-ui';
 ```
 
 In this case you should call `Message(options)`. We have also registered methods for different types, e.g. `Message.success(options)`.
-You can call `Message.closeAll()` to manually close all the instances.
 
 ### Options
 | Attribute      | Description          | Type      | Accepted Values       | Default  |
 |---------- |-------------- |---------- |--------------------------------  |-------- |
-| message | message text | string / VNode | — | — |
+| message | message text | string | — | — |
 | type | message type | string | success/warning/info/error | info |
 | iconClass | custom icon's class, overrides `type` | string | — | — |
 | customClass | custom class name for Message | string | — | — |

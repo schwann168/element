@@ -146,13 +146,13 @@ TableStore.prototype.mutations = {
   },
 
   filterChange(states, options) {
-    let { column, values, silent } = options;
+    let { column, values } = options;
     if (values && !Array.isArray(values)) {
       values = [values];
     }
 
     const prop = column.property;
-    const filters = {};
+    const filters = [];
 
     if (prop) {
       states.filters[column.id] = values;
@@ -175,9 +175,7 @@ TableStore.prototype.mutations = {
     states.filteredData = data;
     states.data = sortData(data, states);
 
-    if (!silent) {
-      this.table.$emit('filter-change', filters);
-    }
+    this.table.$emit('filter-change', filters);
 
     Vue.nextTick(() => this.table.updateScrollY());
   },
@@ -200,7 +198,6 @@ TableStore.prototype.mutations = {
       states.reserveSelection = column.reserveSelection;
     }
 
-    this.updateColumns();  // hack for dynamics insert column
     this.scheduleLayout();
   },
 
@@ -210,7 +207,6 @@ TableStore.prototype.mutations = {
       _columns.splice(_columns.indexOf(column), 1);
     }
 
-    this.updateColumns();  // hack for dynamics remove column
     this.scheduleLayout();
   },
 

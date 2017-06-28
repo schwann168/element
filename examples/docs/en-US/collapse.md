@@ -14,16 +14,6 @@
   }
 </script>
 
-<style>
-  .demo-collapse {
-    .el-collapse-item__header {
-      .header-icon {
-        margin-left: 5px;
-      }
-    }
-  }
-</style>
-
 ## Collapse
 
 Use Collapse to store contents.

@@ -7,10 +7,13 @@
   @b cascader {
     display: inline-block;
     position: relative;
+    background-color: #fff;
 
     .el-input,
     .el-input__inner {
       cursor: pointer;
+      background-color: transparent;
+      z-index: var(--index-normal);
     }
 
     .el-input__icon {
@@ -23,10 +26,6 @@
       @when reverse {
         transform: rotateZ(180deg);
       }
-    }
-
-    .el-icon-circle-close {
-      z-index: calc(var(--index-normal) + 1);
     }
 
     @e label {

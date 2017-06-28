@@ -1,6 +1,5 @@
 <script>
   import TabBar from './tab-bar';
-  import { addResizeListener, removeResizeListener } from 'element-ui/src/utils/resize-event';
 
   function noop() {}
 
@@ -91,31 +90,25 @@
       },
       setOffset(value) {
         this.navStyle.transform = `translateX(-${value}px)`;
-      },
-      update() {
-        const navWidth = this.$refs.nav.offsetWidth;
-        const containerWidth = this.$refs.navScroll.offsetWidth;
-        const currentOffset = this.getCurrentScrollOffset();
-
-        if (containerWidth < navWidth) {
-          const currentOffset = this.getCurrentScrollOffset();
-          this.scrollable = this.scrollable || {};
-          this.scrollable.prev = currentOffset;
-          this.scrollable.next = currentOffset + containerWidth < navWidth;
-          if (navWidth - currentOffset < containerWidth) {
-            this.setOffset(navWidth - containerWidth);
-          }
-        } else {
-          this.scrollable = false;
-          if (currentOffset > 0) {
-            this.setOffset(0);
-          }
-        }
       }
     },
 
     updated() {
-      this.update();
+      const navWidth = this.$refs.nav.offsetWidth;
+      const containerWidth = this.$refs.navScroll.offsetWidth;
+      const currentOffset = this.getCurrentScrollOffset();
+
+      if (containerWidth < navWidth) {
+        const currentOffset = this.getCurrentScrollOffset();
+        this.scrollable = this.scrollable || {};
+        this.scrollable.prev = currentOffset;
+        this.scrollable.next = currentOffset + containerWidth < navWidth;
+        if (navWidth - currentOffset < containerWidth) {
+          this.setOffset(navWidth - containerWidth);
+        }
+      } else if (currentOffset > 0) {
+        this.setOffset(0);
+      }
     },
 
     render(h) {
@@ -176,15 +169,6 @@
           </div>
         </div>
       );
-    },
-
-    mounted() {
-      addResizeListener(this.$el, this.update);
-    },
-
-    beforeDestroy() {
-      if (this.$el && this.update) removeResizeListener(this.$el, this.update);
     }
   };
 </script>
-

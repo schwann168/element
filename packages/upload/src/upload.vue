@@ -3,7 +3,6 @@ import ajax from './ajax';
 import UploadDragger from './upload-dragger.vue';
 
 export default {
-  inject: ['uploader'],
   components: {
     UploadDragger
   },
@@ -38,18 +37,12 @@ export default {
     },
     fileList: Array,
     autoUpload: Boolean,
-    listType: String,
-    httpRequest: {
-      type: Function,
-      default: ajax
-    },
-    disabled: Boolean
+    listType: String
   },
 
   data() {
     return {
-      mouseover: false,
-      reqs: {}
+      mouseover: false
     };
   },
 
@@ -62,6 +55,7 @@ export default {
 
       if (!files) return;
       this.uploadFiles(files);
+      this.$refs.input.value = null;
     },
     uploadFiles(files) {
       let postFiles = Array.prototype.slice.call(files);
@@ -70,13 +64,13 @@ export default {
       if (postFiles.length === 0) { return; }
 
       postFiles.forEach(rawFile => {
-        this.onStart(rawFile);
-        if (this.autoUpload) this.upload(rawFile);
+        if (!this.thumbnailMode || this.isImage(rawFile.type)) {
+          this.onStart(rawFile);
+          if (this.autoUpload) this.upload(rawFile);
+        }
       });
     },
     upload(rawFile, file) {
-      this.$refs.input.value = null;
-
       if (!this.beforeUpload) {
         return this.post(rawFile);
       }
@@ -90,32 +84,16 @@ export default {
             this.post(rawFile);
           }
         }, () => {
-          this.onRemove(rawFile, true);
+          if (file) this.onRemove(file);
         });
       } else if (before !== false) {
         this.post(rawFile);
       } else {
-        this.onRemove(rawFile, true);
-      }
-    },
-    abort(file) {
-      const { reqs } = this;
-      if (file) {
-        let uid = file;
-        if (file.uid) uid = file.uid;
-        if (reqs[uid]) {
-          reqs[uid].abort();
-        }
-      } else {
-        Object.keys(reqs).forEach((uid) => {
-          if (reqs[uid]) reqs[uid].abort();
-          delete reqs[uid];
-        });
+        if (file) this.onRemove(file);
       }
     },
     post(rawFile) {
-      const { uid } = rawFile;
-      const options = {
+      ajax({
         headers: this.headers,
         withCredentials: this.withCredentials,
         file: rawFile,
@@ -127,23 +105,14 @@ export default {
         },
         onSuccess: res => {
           this.onSuccess(res, rawFile);
-          delete this.reqs[uid];
         },
         onError: err => {
           this.onError(err, rawFile);
-          delete this.reqs[uid];
         }
-      };
-      const req = this.httpRequest(options);
-      this.reqs[uid] = req;
-      if (req && req.then) {
-        req.then(options.onSuccess, options.onError);
-      }
+      });
     },
     handleClick() {
-      if (!this.disabled) {
-        this.$refs.input.click();
-      }
+      this.$refs.input.click();
     }
   },
 
@@ -151,13 +120,11 @@ export default {
     let {
       handleClick,
       drag,
-      name,
       handleChange,
       multiple,
       accept,
       listType,
-      uploadFiles,
-      disabled
+      uploadFiles
     } = this;
     const data = {
       class: {
@@ -172,10 +139,10 @@ export default {
       <div {...data}>
         {
           drag
-          ? <upload-dragger disabled={disabled} on-file={uploadFiles}>{this.$slots.default}</upload-dragger>
+          ? <upload-dragger on-file={uploadFiles}>{this.$slots.default}</upload-dragger>
           : this.$slots.default
         }
-        <input class="el-upload__input" type="file" ref="input" name={name} on-change={handleChange} multiple={multiple} accept={accept}></input>
+        <input class="el-upload__input" type="file" ref="input" on-change={handleChange} multiple={multiple} accept={accept}></input>
       </div>
     );
   }

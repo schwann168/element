@@ -62,17 +62,15 @@ export default {
     },
     cascader: {
       noMatch: 'Sem resultados',
-      loading: 'Carregando',
       placeholder: 'Selecione'
     },
     pagination: {
       goto: 'Ir para',
-      pagesize: '/página',
+      pagesize: '/pagina',
       total: 'Total {total}',
       pageClassifier: ''
     },
     messagebox: {
-      title: 'Mensagem',
       confirm: 'Confirmar',
       cancel: 'Cancelar',
       error: 'Erro!'
@@ -86,19 +84,10 @@ export default {
       emptyText: 'Sem dados',
       confirmFilter: 'Confirmar',
       resetFilter: 'Limpar',
-      clearFilter: 'Todos',
-      sumText: 'Total'
+      clearFilter: 'Todos'
     },
     tree: {
       emptyText: 'Sem dados'
-    },
-    transfer: {
-      noMatch: 'Sem resultados',
-      noData: 'Sem dados',
-      titles: ['Lista 1', 'Lista 2'],
-      filterPlaceholder: 'Digite uma palavra-chave',
-      noCheckedFormat: '{total} itens',
-      hasCheckedFormat: '{checked}/{total} selecionados'
     }
   }
 };

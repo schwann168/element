@@ -18,7 +18,7 @@
             :class="{'highlighted': parent.highlightedIndex === index}"
             @click="select(item)"
           >
-            {{item[props.label]}}
+            {{item.value}}
           </li>
           <component
             v-else
@@ -36,10 +36,7 @@
 <script>
   import Popper from 'element-ui/src/utils/vue-popper';
   import Emitter from 'element-ui/src/mixins/emitter';
-  import ElScrollbar from 'element-ui/packages/scrollbar';
-
   export default {
-    components: { ElScrollbar },
     mixins: [Popper, Emitter],
 
     componentName: 'ElAutocompleteSuggestions',
@@ -52,7 +49,6 @@
     },
 
     props: {
-      props: Object,
       suggestions: Array,
       options: {
         default() {

@@ -190,7 +190,7 @@
 
       renderContent(h, { node, data, store }) {
         return (
-          <span style="white-space: normal">
+          <span>
             <span>
               <span>{node.label}</span>
             </span>
@@ -526,7 +526,7 @@
 ### 自定义节点内容
 节点的内容支持自定义，可以在节点区添加按钮或图标等内容
 
-::: demo 使用`render-content`指定渲染函数，该函数返回需要的节点区内容即可。渲染函数的用法请参考 Vue 文档。注意：由于 jsfiddle 不支持 JSX 语法，所以本例在 jsfiddle 中无法运行。但是在实际的项目中，只要正确地配置了相关依赖，就可以正常运行。
+::: demo 使用`render-content`指定渲染函数，该函数返回需要的节点区内容即可。渲染函数的用法请参考 Vue 文档。
 ```html
 <el-tree
   :data="data2"
@@ -698,7 +698,7 @@
 
 ### 手风琴模式
 
-对于同一级的节点，每次只能展开一个
+每次只打开一个同级树节点展开
 
 ::: demo
 ```html
